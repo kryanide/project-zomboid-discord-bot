@@ -1,4 +1,4 @@
-﻿.env
+.env
 *.env
 __pycache__/
 *.pyc
@@ -6,3 +6,6 @@ __pycache__/
 venv/
 *.log
 command_templates.py
+*.bak
+*.bak2
+settings.json

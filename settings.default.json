@@ -1,0 +1,11 @@
+{
+  "ephemeral": {
+    "ping": true,
+    "players": true,
+    "status": true,
+    "stop": false
+  },
+  "stop_delay_seconds": 10,
+  "shutdown_check_delay_seconds": 10,
+  "status_timeout_seconds": 2
+}
