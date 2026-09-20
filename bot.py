@@ -152,17 +152,6 @@ async def stop(interaction: discord.Interaction):
         log_command(interaction, "already offline", logging.WARNING)
         await reply(interaction, "stop.already_offline")
         return
-    # try:
-    #     await asyncio.to_thread(rcon_command, f'servermsg "{get_message("stop.server").format(STOP_DELAY)}"')
-    #     await reply(interaction, "stop.warning_sent")
-    #     await asyncio.sleep(STOP_DELAY)
-    #     await reply(interaction, "stop.saving")
-    #     await asyncio.to_thread(rcon_command, 'save')
-    #     log_command(interaction, "saved")
-    # except Exception as e:
-    #     log_command(interaction, f"failed: {e}", logging.ERROR)
-    #     await reply(interaction, "stop.save_failed")
-    #     return
 
     try:
         await asyncio.to_thread(
@@ -191,7 +180,6 @@ async def stop(interaction: discord.Interaction):
         await asyncio.to_thread(rcon_command, 'quit')
     except Exception as e:
         log_command(interaction, f"Server shutdown. {e}", logging.INFO)
-        #await interaction.followup.send(get_message("stop.discord"))
 
     await asyncio.sleep(settings["shutdown_check_delay_seconds"])
 
@@ -200,7 +188,7 @@ async def stop(interaction: discord.Interaction):
         await reply(interaction, "stop.stopped")
     else:
         await reply(interaction, "stop.still_up")
-    #await interaction.followup.send(final)
+
     
 
 # -------------------------------------------------------------------------
