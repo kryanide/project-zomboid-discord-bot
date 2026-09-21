@@ -3,9 +3,12 @@
     "ping": true,
     "players": true,
     "status": true,
-    "stop": false
+    "stop": true,
+    "start": true
   },
   "stop_delay_seconds": 10,
   "shutdown_check_delay_seconds": 10,
-  "status_timeout_seconds": 2
+  "status_timeout_seconds": 2,
+  "start_timeout_seconds": 600,
+  "start_poll_seconds": 5
 }

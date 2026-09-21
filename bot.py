@@ -6,6 +6,7 @@ import logging
 import messages
 import random
 import json
+import subprocess
 from rcon.source import Client
 from discord import app_commands
 from dotenv import load_dotenv
@@ -28,6 +29,7 @@ HOST = os.getenv("RCON_HOST", "127.0.0.1")
 PORT = int(os.getenv("RCON_PORT", "27015"))
 PASSWORD = os.getenv("RCON_PASSWORD")
 ADMIN = int(os.getenv("ADMIN_ROLE_ID"))
+BAT_FILE = os.getenv("SERVER_BAT")
 
 SETTINGS_FILE = "settings.json"
 
@@ -133,7 +135,7 @@ async def status(interaction: discord.Interaction):
 
 # -------------------------------------------------------------------------
 # -------------------------------------------------------------------------
-# -------------------------SHUTDOWN-----------------------------------------
+# -------------------------SHUTDOWN----------------------------------------
 
 
 @bot.tree.command(description="Stop the server")
@@ -193,6 +195,65 @@ async def stop(interaction: discord.Interaction):
 
 # -------------------------------------------------------------------------
 # -------------------------------------------------------------------------
+# ----------------------STARTUP--------------------------------------------
+
+# Permission check
+
+@bot.tree.command(description="Start the server")
+async def start(interaction: discord.Interaction):
+    if not any(r.id == ADMIN for r in interaction.user.roles):
+        log_command(interaction, "denied", logging.WARNING)
+        await interaction.response.send_message(get_message("start.denied"), ephemeral=True)
+        return
+
+    status = await asyncio.to_thread(check_status)
+
+    log_command(interaction)
+    await interaction.response.defer(ephemeral=is_ephemeral(interaction))
+    if status == "online":
+        log_command(interaction, "already online", logging.WARNING)
+        await reply(interaction, "start.already_online")
+        return
+
+    try:
+        proc = subprocess.Popen(
+            BAT_FILE,
+            cwd=os.path.dirname(BAT_FILE),
+            creationflags=subprocess.CREATE_NEW_CONSOLE,
+        )
+    except Exception as e:
+        log_command(interaction, f"startup failed: {e}", logging.ERROR)
+        await reply(interaction, "start.failed")
+        return
+
+    await reply(interaction, "start.launching")
+
+    max_attempts = settings["start_timeout_seconds"] // settings["start_poll_seconds"]
+    poll_seconds = settings["start_poll_seconds"]
+
+    for attempt in range(max_attempts):
+        await asyncio.sleep(poll_seconds)
+
+        if proc.poll() is not None:
+            log_command(interaction, "startup failed", logging.ERROR)
+            await reply(interaction, "start.failed")
+            return
+        
+        if await asyncio.to_thread(check_status) == "online":
+            log_command(interaction, "started")
+            await reply(interaction, "start.online")
+            return
+        
+        if attempt > 0 and attempt % 12 == 0:
+            log_command(interaction, "still launching")
+            await reply(interaction, "start.still_launching")
+
+    log_command(interaction, "timeout")
+    await reply(interaction, "start.timeout")
+
+
+
+
 
 
 @bot.event

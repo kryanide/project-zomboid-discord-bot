@@ -47,6 +47,15 @@ MESSAGES = {
         "Server's still up - nobody's losing progress over this."
     ),
 
+    # ----- start  -------------------------------------------------------
+    "start.denied": "Looks like you don't have the permissions for that boss!",
+    "start.already_online": "She's already live, boss. Nothing to start.",
+    "start.launching": "Initiating startup sequence... This may take a while.",
+    "start.still_launching": "Startup sequence is still running. Stand by.",
+    "start.online": "Startup complete. Server's live and running.",
+    "start.failed": "Startup failed. Don't know what went wrong. Maybe the logs say what went wrong.",
+    "start.timeout": "Startup timed out. Server didn't come online in time.",
+
     # ----- errors -------------------------------------------------------
     "error.rcon_failed": "Lost the radio halfway through. Couldn't reach the server.",
     "error.no_response": "Sent it. Heard nothing back. Say again?",
