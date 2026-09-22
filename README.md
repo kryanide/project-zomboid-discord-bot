@@ -102,6 +102,8 @@ how it turned out. `bot.log` is gitignored.
 - [ ] A way to check whether any mods have updated
 - [ ] Custom RCON command execution (admin only)
 - [ ] A way to check the server console (e.g. the bot posts the console log as a .txt file)
+- [ ] Custom acknowledgement message instead of Discord's "thinking..."
+- [ ] Multi-step commands (`/stop`, `/start`) edit one message as they progress instead of posting several
 
 ### Housekeeping
 
@@ -112,3 +114,4 @@ how it turned out. `bot.log` is gitignored.
 - [ ] Shared error handler for commands
 - [ ] Log rotation for `bot.log`
 - [ ] Cleanup: unused `save_settings`, `SETTINGS_FILE` not used in `load_settings`, `check_players` duplicating `rcon_command`
+- [ ] Respond to the interaction before `check_status` in `/stop` and `/start`, so a slow status check can't hit Discord's 3-second limit
