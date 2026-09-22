@@ -23,6 +23,9 @@ log = logging.getLogger("pzbot")
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
+
+# Turns "123,456" into [123, 456]
+# Removes any possible spaces. .strip is there as a safety measure but it's probably not needed
 GUILD_IDS = [int(g.strip()) for g in os.getenv("GUILD_IDS").split(",")]
 
 HOST = os.getenv("RCON_HOST", "127.0.0.1")
@@ -33,6 +36,7 @@ BAT_FILE = os.getenv("SERVER_BAT")
 
 SETTINGS_FILE = "settings.json"
 
+# Load from settings.json, however settings.default.json loads first
 def load_settings():
     with open("settings.default.json") as f:
         data = json.load(f)
@@ -54,6 +58,7 @@ class Bot(discord.Client):
         super().__init__(intents=discord.Intents.default())
         self.tree = app_commands.CommandTree(self)
 
+    # Since commands start global, copy to the guild so the sync is instant
     async def setup_hook(self):
         for gid in GUILD_IDS:
             guild = discord.Object(id=gid)
@@ -75,9 +80,13 @@ def rcon_command(command):
     with Client(HOST, PORT, passwd=PASSWORD) as client:
         return client.run(command)
 
+# helper function so I can have each individual command be private or public.
+# Returns true as default incase I forgot to add the command to the json file.
 def is_ephemeral(interaction: discord.Interaction) -> bool:
     return settings["ephemeral"].get(interaction.command.name, True)
 
+# a helper function to get a message from [messages.py]
+# if applicable, grabs a random message, if theres an issue returns the fallback
 def get_message(key: str, fallback: str = "If you're reading this, kry's code is bad") -> str:
     value = messages.MESSAGES.get(key, fallback)
     return random.choice(value) if isinstance(value, list) else value
@@ -99,10 +108,15 @@ def check_players():
     with Client(HOST, PORT, passwd=PASSWORD) as client:
         return client.run("players")
 
+# Usage of defer here (and throughout the code) gives us a 15 minute window to send follow up messages
+# Without it Discord drops the interaction within 3s
+# The only command which doesn't need it is /ping (the command above)
+
 @bot.tree.command(description="See who is online, if anyone.")
 async def players(interaction: discord.Interaction):
     await interaction.response.defer(ephemeral=is_ephemeral(interaction))
     try:
+        # Without to_thread the whole bot would freeze, which would invite problems like disconnects
         result = await asyncio.to_thread(check_players)
     except Exception as e:
         log_command(interaction, f"failed: {e}", logging.ERROR)
@@ -114,6 +128,9 @@ async def players(interaction: discord.Interaction):
 # ---------------------------------------------------------------------------
 # ----------------------STATUS CHECK-----------------------------------------
 
+# Catching OSError here covers both ConnectionRefusedError and TimeoutError
+# On a closed port the connection timed out rather than refused
+# (OSError is the parent of both)
 def check_status(host=HOST, port=PORT):
     try:
         with socket.create_connection((host, port), settings["status_timeout_seconds"]):
@@ -143,6 +160,8 @@ async def stop(interaction: discord.Interaction):
     STOP_DELAY = settings["stop_delay_seconds"]
     if not any(r.id == ADMIN for r in interaction.user.roles):
         log_command(interaction, "denied", logging.WARNING)
+        # I use send_message instead of reply() as the message is sent before defer(), which reply() relies on
+        # This is the same in /start
         await interaction.response.send_message(get_message("stop.denied"), ephemeral=True)
         return
 
@@ -181,10 +200,13 @@ async def stop(interaction: discord.Interaction):
         await reply(interaction, "stop.stopping")
         await asyncio.to_thread(rcon_command, 'quit')
     except Exception as e:
+        # Despite programmatically this section is an "error" this is the intended outcome as RCON
+        # kills the server, so it throws (because the RCON connection goes as well) even if it works. This is why its logged as INFO rather than ERROR
         log_command(interaction, f"Server shutdown. {e}", logging.INFO)
 
     await asyncio.sleep(settings["shutdown_check_delay_seconds"])
 
+    # Since we cannot tell from success and failure above we have to call check_status here to verify
     final = await asyncio.to_thread(check_status)
     if final == "offline":
         await reply(interaction, "stop.stopped")
@@ -196,8 +218,6 @@ async def stop(interaction: discord.Interaction):
 # -------------------------------------------------------------------------
 # -------------------------------------------------------------------------
 # ----------------------STARTUP--------------------------------------------
-
-# Permission check
 
 @bot.tree.command(description="Start the server")
 async def start(interaction: discord.Interaction):
@@ -235,6 +255,8 @@ async def start(interaction: discord.Interaction):
         await asyncio.sleep(poll_seconds)
 
         if proc.poll() is not None:
+            # I use poll() since it returns None if the process is open, early exit means it died, which isnt good
+            # backwards from its intended use but hey, thats programming
             log_command(interaction, "startup failed", logging.ERROR)
             await reply(interaction, "start.failed")
             return
@@ -243,7 +265,9 @@ async def start(interaction: discord.Interaction):
             log_command(interaction, "started")
             await reply(interaction, "start.online")
             return
-        
+
+        # Check every 12th poll, which is roughly every 84s
+        # attempt > 0 stops it firing on the first pass, since 0 % 12 is also 0
         if attempt > 0 and attempt % 12 == 0:
             log_command(interaction, "still launching")
             await reply(interaction, "start.still_launching")
@@ -261,4 +285,5 @@ async def on_ready():
     log.info("Logged in as %s", bot.user)
 
 if __name__ == "__main__":
+    # log_handler=None because we use our own logging system
     bot.run(TOKEN, log_handler=None)
