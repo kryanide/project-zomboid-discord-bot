@@ -1,3 +1,6 @@
+# If the bot is having some trouble with RCON do `python rcon_test.py` to see if it's an issue with
+# RCON itself
+
 import os
 from dotenv import load_dotenv
 from rcon.source import Client

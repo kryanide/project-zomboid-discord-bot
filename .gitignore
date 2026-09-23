@@ -7,5 +7,4 @@ venv/
 *.log
 command_templates.py
 *.bak
-*.bak2
 settings.json
