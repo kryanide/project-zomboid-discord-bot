@@ -1,4 +1,4 @@
-# pz-discord-bot
+# Project Zomboid Discord Bot
 
 ![maintenance](https://img.shields.io/badge/maintenance-actively%20developed-brightgreen)
 
