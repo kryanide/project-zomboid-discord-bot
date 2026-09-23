@@ -3,6 +3,7 @@
 # One flat dict, keys namespaced with a prefix:
 #   status.*  - the /status command
 #   stop.*    - the /stop command
+#   start.*   - the /start command
 #   error.*   - things that ideally never get seen
 #
 # A value can be a single string or a list of variants.
@@ -19,8 +20,8 @@ MESSAGES = {
     ],
     "status.offline": [
         (
-            ":red_circle: - negative, no joy on that frequency "
-            "looks like the server is down, over."
+            ":red_circle: - Negative, no joy on that frequency. "
+            "Looks like the server is down, over."
         ),
         ":red_circle: - I've been calling for ten minutes. Nobody's home. Server's offline.",
         ":red_circle: - No signal, no lights, nothing. She's dark.",
@@ -32,7 +33,7 @@ MESSAGES = {
     "stop.discord": "Closing the connection!",
 
     # Responses
-    "stop.denied": "Looks like you don't have the permissions for that boss!",
+    "stop.denied": "Looks like you don't have the permissions for that, boss!",
     "stop.already_offline": "She's already dark, boss. Nothing to shut down.",
     "stop.warning_sent": "Word's out. Counting down.",
     "stop.saving": "Saving now, hold your position...",
@@ -47,13 +48,13 @@ MESSAGES = {
         "Server's still up - nobody's losing progress over this."
     ),
 
-    # ----- start  -------------------------------------------------------
-    "start.denied": "Looks like you don't have the permissions for that boss!",
+    # ----- start --------------------------------------------------------
+    "start.denied": "Looks like you don't have the permissions for that, boss!",
     "start.already_online": "She's already live, boss. Nothing to start.",
     "start.launching": "Initiating startup sequence... This may take a while.",
     "start.still_launching": "Startup sequence is still running. Stand by.",
     "start.online": "Startup complete. Server's live and running.",
-    "start.failed": "Startup failed. Don't know what went wrong. Maybe the logs say what went wrong.",
+    "start.failed": "Startup failed. Not sure why, maybe the logs will say.",
     "start.timeout": "Startup timed out. Server didn't come online in time.",
 
     # ----- errors -------------------------------------------------------

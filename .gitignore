@@ -8,3 +8,4 @@ venv/
 command_templates.py
 *.bak
 settings.json
+TODO.md

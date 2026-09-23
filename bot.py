@@ -81,12 +81,12 @@ def rcon_command(command):
         return client.run(command)
 
 # helper function so I can have each individual command be private or public.
-# Returns true as default incase I forgot to add the command to the json file.
+# Returns True by default in case I forgot to add the command to the json file.
 def is_ephemeral(interaction: discord.Interaction) -> bool:
     return settings["ephemeral"].get(interaction.command.name, True)
 
 # a helper function to get a message from [messages.py]
-# if applicable, grabs a random message, if theres an issue returns the fallback
+# if applicable, grabs a random message, if there's an issue returns the fallback
 def get_message(key: str, fallback: str = "If you're reading this, kry's code is bad") -> str:
     value = messages.MESSAGES.get(key, fallback)
     return random.choice(value) if isinstance(value, list) else value
@@ -200,13 +200,14 @@ async def stop(interaction: discord.Interaction):
         await reply(interaction, "stop.stopping")
         await asyncio.to_thread(rcon_command, 'quit')
     except Exception as e:
-        # Despite programmatically this section is an "error" this is the intended outcome as RCON
-        # kills the server, so it throws (because the RCON connection goes as well) even if it works. This is why its logged as INFO rather than ERROR
+        # Although this is technically an error, it's the intended outcome. quit kills the server,
+        # which takes the RCON connection down with it, so this throws even when it works.
+        # That's why it's logged as INFO rather than ERROR.
         log_command(interaction, f"Server shutdown. {e}", logging.INFO)
 
     await asyncio.sleep(settings["shutdown_check_delay_seconds"])
 
-    # Since we cannot tell from success and failure above we have to call check_status here to verify
+    # Since we can't tell success from failure above, we call check_status here to verify
     final = await asyncio.to_thread(check_status)
     if final == "offline":
         await reply(interaction, "stop.stopped")
@@ -255,8 +256,8 @@ async def start(interaction: discord.Interaction):
         await asyncio.sleep(poll_seconds)
 
         if proc.poll() is not None:
-            # I use poll() since it returns None if the process is open, early exit means it died, which isnt good
-            # backwards from its intended use but hey, thats programming
+            # poll() returns None while the process is running and an exit code once it's finished
+            # An early exit means the launch died, which isn't good
             log_command(interaction, "startup failed", logging.ERROR)
             await reply(interaction, "start.failed")
             return
